@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4 - User Friendly</title>
+    <style>
+        :root {
+            --board-blue: #2980b9;
+            --cell-empty: #ecf0f1;
+            --player-red: #e74c3c;
+            --computer-yellow: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #status {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            height: 2rem;
+        }
+
+        /* The Board Container */
+        #board-container {
+            position: relative;
+            background-color: var(--board-blue);
+            padding: 10px;
+            border-radius: 15px;
+            border: 8px solid #1f6391;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: repeat(7, 60px);
+            gap: 10px;
+        }
+
+        /* Column Highlighting Logic */
+        .column {
+            display: contents; /* Allows children to behave as grid items */
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: var(--cell-empty);
+            border-radius: 50%;
+            transition: background-color 0.2s, transform 0.1s;
+            position: relative;
+        }
+
+        /* Column Hover Effect */
+        .col-hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+        }
+
+        /* Player Colors */
+        .cell.red { background-color: var(--player-red); box-shadow: inset 0 0 15px rgba(0,0,0,0.4); }
+        .cell.yellow { background-color: var(--computer-yellow); box-shadow: inset 0 0 15px rgba(0,0,0,0.4); }
+
+        /* Animation for dropping */
+        .cell.drop { transform: scale(1.1); }
+
+        button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            background-color: #27ae60;
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: #2ecc71; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div id="status">Your Turn (Red)</div>
+    
+    <div id="board-container">
+        </div>
+
+    <button onclick="resetGame()">New Game</button>
+
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        const PLAYER = 'red';
+        const COMPUTER = 'yellow';
+        
+        let board = [];
+        let gameOver = false;
+        let currentPlayer = PLAYER;
+
+        const boardContainer = document.getElementById('board-container');
+        const statusElement = document.getElementById('status');
+
+        function createBoard() {
+            board = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+            boardContainer.innerHTML = '';
+            
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.id = `cell-${r}-${c}`;
+                    
+                    // Add hover listeners to columns
+                    cell.onmouseenter = () => highlightColumn(c, true);
+                    cell.onmouseleave = () => highlightColumn(c, false);
+                    cell.onclick = () => handleMove(c);
+                    
+                    boardContainer.appendChild(cell);
+                }
+            }
+        }
+
+        function highlightColumn(col, isHovering) {
+            if (gameOver || currentPlayer !== PLAYER) return;
+            
+            for (let r = 0; r < ROWS; r++) {
+                const cell = document.getElementById(`cell-${r}-${col}`);
+                if (isHovering) {
+                    cell.style.filter = "brightness(1.2)";
+                    cell.style.outline = "2px dashed rgba(255,255,255,0.5)";
+                } else {
+                    cell.style.filter = "";
+                    cell.style.outline = "";
+                }
+            }
+        }
+
+        function handleMove(col) {
+            if (gameOver || currentPlayer !== PLAYER) return;
+
+            if (makeMove(col, PLAYER)) {
+                highlightColumn(col, false); // Clear highlights after clicking
+                if (checkWin(PLAYER)) {
+                    endGame("You Win! 🎉");
+                } else if (board.flat().every(cell => cell !== null)) {
+                    endGame("It's a Draw! 🤝");
+                } else {
+                    currentPlayer = COMPUTER;
+                    statusElement.innerText = "Computer is thinking...";
+                    setTimeout(computerMove, 700);
+                }
+            }
+        }
+
+        function computerMove() {
+            if (gameOver) return;
+
+            let availableCols = [];
+            for (let c = 0; c < COLS; c++) {
+                if (board[0][c] === null) availableCols.push(c);
+            }
+
+            if (availableCols.length > 0) {
+                const randomCol = availableCols[Math.floor(Math.random() * availableCols.length)];
+                makeMove(randomCol, COMPUTER);
+
+                if (checkWin(COMPUTER)) {
+                    endGame("Computer Wins! 🤖");
+                } else {
+                    currentPlayer = PLAYER;
+                    statusElement.innerText = "Your Turn (Red)";
+                }
+            }
+        }
+
+        function makeMove(col, color) {
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (!board[r][col]) {
+                    board[r][col] = color;
+                    const cell = document.getElementById(`cell-${r}-${col}`);
+                    cell.classList.add(color);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkWin(color) {
+            // Horizontal, Vertical, Diagonal checks
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (checkDirection(r, c, 0, 1, color) || // Horizontal
+                        checkDirection(r, c, 1, 0, color) || // Vertical
+                        checkDirection(r, c, 1, 1, color) || // Diag Down-Right
+                        checkDirection(r, c, 1, -1, color))  // Diag Down-Left
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        function checkDirection(r, c, dr, dc, color) {
+            let count = 0;
+            for (let i = 0; i < 4; i++) {
+                let nr = r + i * dr;
+                let nc = c + i * dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === color) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            return count === 4;
+        }
+
+        function endGame(message) {
+            gameOver = true;
+            statusElement.innerText = message;
+        }
+
+        function resetGame() {
+            gameOver = false;
+            currentPlayer = PLAYER;
+            statusElement.innerText = "Your Turn (Red)";
+            createBoard();
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>

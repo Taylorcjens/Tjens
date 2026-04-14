@@ -1,0 +1,78 @@
+body{
+    background-color:#b4b4b4;
+    color:white;
+    font-family:Arial, Helvetica, sans-serif;
+    max-width:800px;
+    margin:auto;
+    padding:20;
+    line-height: 1.6;
+    text-align: center;
+
+}
+
+ol, ul {
+    text-align: left;       
+    display: inline-block;  /* Shrinks the container to fit the text width */
+}
+
+section {
+    text-align: center;
+}
+
+img{
+    max-width:500px;
+    height:auto;
+    border-radius:8px;
+}
+
+img:hover{
+    transform: scale(1.08);
+}
+
+li ul {
+    text-align: left;
+    display: block; /* This ensures it stays on its own line below the text */
+    margin-left: 20px; /* Gives it that nice professional indent */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+a[href="#top"] {
+    color: white; 
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a[href="#top"]:hover {
+    color: #3498db; 
+    text-decoration: underline;
+}
+
+.tableauPlaceholder {
+    margin: 20px auto; /* Centers the spreadsheet */
+    overflow: hidden;
+}
+
+nav {
+    background-color: #1a252f; /* Slightly darker than the body */
+    padding: 15px;
+    text-align: center;
+    position: sticky; /* This keeps the nav bar at the top as you scroll */
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid #3498db;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px; /* Adds space between the links */
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: #3498db; /* Changes to blue when you hover */
+}
